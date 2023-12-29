@@ -2,10 +2,19 @@ document.getElementById('formularioImagen').addEventListener('submit', function(
     event.preventDefault();
 
     const archivos = document.getElementById('imagen').files;
-    const totalArchivos = archivos.length;
+    const archivosImagen = Array.from(archivos).filter(archivo => 
+        archivo.type.match('image.*') // Filtra solo archivos de imagen
+    );
+    const totalArchivos = archivosImagen.length;
+
+    if (totalArchivos === 0) {
+        console.error("No hay imágenes para cargar");
+        return; // Salir si no hay imágenes
+    }
+
     let archivosCargados = 0;
 
-    const promesasDeCarga = Array.from(archivos).map(archivo => 
+    const promesasDeCarga = archivosImagen.map(archivo => 
         cargarArchivoEnPartes(archivo).then(() => {
             archivosCargados++;
             actualizarProgreso(archivosCargados, totalArchivos);
@@ -13,9 +22,13 @@ document.getElementById('formularioImagen').addEventListener('submit', function(
     );
 
     Promise.all(promesasDeCarga)
-        .then(() => window.alert("Todos los archivos han sido cargados."))
+        .then(() => {
+            console.log("Todas las imágenes han sido cargadas.");
+            llamarPasarZip(); // Llamada a la función para ejecutar pasarZip.php
+        })
         .catch(error => console.error("Error en la carga: ", error));
 });
+
 
 function actualizarProgreso(archivosCargados, totalArchivos) {
     const porcentaje = (archivosCargados / totalArchivos) * 100;
@@ -62,4 +75,18 @@ function cargarArchivoEnPartes(archivo) {
 
         subirParte();
     });
+}
+
+function llamarPasarZip() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'pasarZip.php', true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            console.log('Archivos pasados a ZIP exitosamente');
+            console.log(xhr.responseText); // Manejo de la respuesta de PHP
+        } else {
+            console.error('Error al pasar archivos a ZIP');
+        }
+    };
+    xhr.send();
 }

@@ -7,7 +7,8 @@
 </head>
 <body>
     <form id="formularioImagen" enctype="multipart/form-data">
-        <input type="file" name="imagen[]" id="imagen" multiple>
+        <!-- Modificación aquí: se añade el atributo accept para especificar solo imágenes -->
+        <input type="file" name="imagen[]" id="imagen" accept="image/*" multiple>
         <button type="submit">Cargar Imagen</button>
     </form>
 

@@ -1,8 +1,6 @@
 <?php
 $directorioTemporal = "temp_img/";
 $directorioDestino = "img/";
-$directorioZip = "zip/";
-$nombreZip = "archivos_cargados.zip"; // Nombre del archivo .zip
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreArchivo = $_POST['nombreArchivo'];
@@ -23,19 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         fclose($archivoDestino);
-
-        // Agregar el archivo completo al zip
-        $zip = new ZipArchive();
-        if ($zip->open($directorioZip . $nombreZip, ZipArchive::CREATE) === TRUE) {
-            $zip->addFile($archivoCompleto, $nombreArchivo);
-            $zip->close();
-
-            // Opcionalmente, puedes eliminar el archivo del directorio de destino después de agregarlo al zip
-            // unlink($archivoCompleto);
-        }
-
-        echo "console.log('Archivo completo subido: " . $nombreArchivo ." ')";
     }
 }
 ?>
-
