@@ -85,6 +85,9 @@ function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nueva
 // Uso de la función
 $carperaOrigen = 'C:\xampp\htdocs\Carga de imagenes con Ajax\img';
 $carpetaDestino = 'C:\xampp\htdocs\Carga de imagenes con Ajax\low_img';
+if (!file_exists($carpetaDestino)) {
+    mkdir($carpetaDestino, 0777, true);
+}
 $ancho = 800;
 $alto = 600;
 $maxImg = 5;

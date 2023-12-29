@@ -1,7 +1,12 @@
 <?php
 $directorioTemporal = "temp_img/";
+if (!file_exists($directorioTemporal)) {
+    mkdir($directorioTemporal, 0777, true);
+}
 $directorioDestino = "img/";
-
+if (!file_exists($directorioDestino)) {
+    mkdir($directorioDestino, 0777, true);
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombreArchivo = $_POST['nombreArchivo'];
     $parteActual = $_POST['parteActual'];
