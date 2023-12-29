@@ -1,6 +1,7 @@
 <?php
-//Funcion para reducir la resolucion de las imagenes
-function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nuevaAnchura, $nuevaAltura) {
+//Función para reducir la resolución de las imágenes
+function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nuevaAnchura, $nuevaAltura, $maxImg)
+{
     // Verificar si el directorio origen existe
     if (!file_exists($directorioOrigen)) {
         return "El directorio de origen no existe.";
@@ -16,11 +17,13 @@ function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nueva
 
     // Procesar cada archivo en el directorio
     while (($archivo = readdir($dir)) !== false) {
-        $rutaArchivo = $directorioOrigen . '/' . $archivo;
-        
-        // Verificar si es un archivo y es una imagen
-        if (is_file($rutaArchivo) && in_array(mime_content_type($rutaArchivo), ['image/jpeg', 'image/png', 'image/gif'])) {
 
+
+        $rutaArchivo = $directorioOrigen . '/' . $archivo;
+        $tipoMime = mime_content_type($rutaArchivo);
+
+        // Verificar si es un archivo y es una imagen
+        if (is_file($rutaArchivo) && in_array($tipoMime, ['image/jpeg', 'image/png', 'image/gif'])) {
             // Crear una nueva imagen con la nueva resolución
             list($anchura, $altura) = getimagesize($rutaArchivo);
             $ratio = $anchura / $altura;
@@ -28,18 +31,30 @@ function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nueva
             $new_anchura = $nuevaAnchura;
 
             if ($new_anchura / $new_altura > $ratio) {
-               $new_anchura = $new_altura * $ratio;
+                $new_anchura = $new_altura * $ratio;
             } else {
-               $new_altura = $new_anchura / $ratio;
+                $new_altura = $new_anchura / $ratio;
             }
 
             $imagen = imagecreatetruecolor($new_anchura, $new_altura);
-            $imagenOrigen = imagecreatefromstring(file_get_contents($rutaArchivo));
+
+            switch ($tipoMime) {
+                case 'image/jpeg':
+                    $imagenOrigen = imagecreatefromjpeg($rutaArchivo);
+                    break;
+                case 'image/png':
+                    $imagenOrigen = imagecreatefrompng($rutaArchivo);
+                    break;
+                case 'image/gif':
+                    $imagenOrigen = imagecreatefromgif($rutaArchivo);
+                    break;
+            }
+
             imagecopyresampled($imagen, $imagenOrigen, 0, 0, 0, 0, $new_anchura, $new_altura, $anchura, $altura);
 
             // Guardar la imagen en el directorio destino
             $rutaDestino = $directorioDestino . '/' . $archivo;
-            switch (mime_content_type($rutaArchivo)) {
+            switch ($tipoMime) {
                 case 'image/jpeg':
                     imagejpeg($imagen, $rutaDestino);
                     break;
@@ -49,6 +64,11 @@ function reducirResolucionImagenes($directorioOrigen, $directorioDestino, $nueva
                 case 'image/gif':
                     imagegif($imagen, $rutaDestino);
                     break;
+            }
+            //Solo se puede subir un máximo de 5 imágenes
+            $maxImg--;
+            if ($maxImg <= 0) {
+                break;
             }
 
             // Liberar memoria
@@ -67,18 +87,14 @@ $carperaOrigen = 'C:\xampp\htdocs\Carga de imagenes con Ajax\img';
 $carpetaDestino = 'C:\xampp\htdocs\Carga de imagenes con Ajax\low_img';
 $ancho = 800;
 $alto = 600;
-reducirResolucionImagenes($carperaOrigen, $carpetaDestino, $ancho, $alto);
-
-
-
-
-
+$maxImg = 5;
+echo reducirResolucionImagenes($carperaOrigen, $carpetaDestino, $ancho, $alto, $maxImg);
 
 // Función para agregar un directorio al archivo ZIP
 function agregarDirectorioAlZip($zip, $dir, $baseDir = '')
 {
     $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir),
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
         RecursiveIteratorIterator::LEAVES_ONLY
     );
 
@@ -94,7 +110,6 @@ function agregarDirectorioAlZip($zip, $dir, $baseDir = '')
         }
     }
 }
-
 
 // Ruta de la carpeta a comprimir
 $carpeta = 'C:\xampp\htdocs\Carga de imagenes con Ajax\img';
@@ -135,7 +150,7 @@ if ($zip->open($archivoZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE
 function eliminarArchivos($dir)
 {
     $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir),
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
         RecursiveIteratorIterator::LEAVES_ONLY
     );
 
